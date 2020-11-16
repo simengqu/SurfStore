@@ -93,6 +93,7 @@ func (surfClient *RPCClient) GetFileInfoMap(succ *bool, serverFileInfoMap *map[s
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) error {
 	// panic("todo")
 	// connect to the server
+	fmt.Println("in client.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
 	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
 	if e != nil {
 		return e

@@ -8,6 +8,8 @@ import (
 	// "bufio"
 	"io/ioutil"
 	// "strings"
+	"crypto/sha256"
+	"encoding/hex"
 )
 
 /*
@@ -31,17 +33,18 @@ func ClientSync(client RPCClient) {
 	// 	}
 	// }
 	// create MetaStore
-	metaStore := MetaStore{
-		FileMetaMap: make(map[string]FileMetaData),
-	}
+	// metaStore := MetaStore{
+	// 	FileMetaMap: make(map[string]FileMetaData),
+	// }
 	// metaStore := new(MetaStore)
-	blockStore := BlockStore{
-		BlockMap: make(map[string]Block),
-	}
+	// blockStore := BlockStore{
+	// 	BlockMap: make(map[string]Block),
+	// }
 	bl := new(bool)
 	*bl = true
 	// fmm := new(map[string]FileMetaData)	
-	var fmm = map[string]FileMetaData{}
+	var fileMetaMap = map[string]FileMetaData{}
+	client.GetFileInfoMap(bl, &fileMetaMap)
 	// fmt.Println(metaStore.FileMetaMap)
 	// client.GetFileInfoMap(bl, &metaStore.FileMetaMap)
 	// fmt.Println(metaStore.FileMetaMap)
@@ -67,23 +70,31 @@ func ClientSync(client RPCClient) {
 				// f.Read(block.BlockData)
 				fileMetaData := FileMetaData{
 					Filename:      f.Name(),
-					Version:       1,
+					Version:       -1,
 					BlockHashList: []string{},
 				}
+				// client.UpdateFile(&fileMetaData, &fileMetaData.Version)
 				for {
 					_, err = fi.Read(block.BlockData)
-					blockStore.PutBlock(block, bl)
+					
+					h := sha256.Sum256(block.BlockData)
+					he := hex.EncodeToString(h[:])
+					fileMetaData.BlockHashList = append(fileMetaData.BlockHashList, he)
+					
+					client.PutBlock(block, bl)
+					fmt.Println(string(block.BlockData))
+
 					if err != nil {
 						fmt.Println("Error when reading...", err)
 						break
 					}
-					fmt.Println(string(block.BlockData))
 				}
-
-				for k := range blockStore.BlockMap {
-					fileMetaData.BlockHashList = append(fileMetaData.BlockHashList, k)
-				}
-				fmt.Println(fileMetaData.BlockHashList)
+				fmt.Println("fileMetaData.BlockHashList...", fileMetaData.BlockHashList)
+				client.UpdateFile(&fileMetaData, &fileMetaData.Version)
+				// for k := range client.BlockMap {
+				// 	fileMetaData.BlockHashList = append(fileMetaData.BlockHashList, k)
+				// }
+				// fmt.Println(fileMetaData.BlockHashList)
 
 				// fi.Write(block.BlockData)
 				// blockStore.PutBlock(block, bl)
@@ -93,10 +104,11 @@ func ClientSync(client RPCClient) {
 				// indexF.WriteString(l+"\n")
 				// fmt.Println(l)
 				// metaStore.FileMetaMap = *new(map[string]FileMetaData)
-				metaStore.FileMetaMap[f.Name()] = fileMetaData
+				// metaStore.FileMetaMap[f.Name()] = fileMetaData
 
 							
-				fmm[f.Name()] = fileMetaData
+				fileMetaMap[f.Name()] = fileMetaData
+				fmt.Println("fileMetaData.Version after calling...", fileMetaData.Version)
 			}
 		}
 	}
@@ -105,17 +117,76 @@ func ClientSync(client RPCClient) {
 	// fmt.Println(metaStore.FileMetaMap)
 	// client.GetFileInfoMap(bl, &metaStore.FileMetaMap)
 	// fmt.Println(metaStore.FileMetaMap)
-	fmt.Println(fmm)
-	client.GetFileInfoMap(bl, &fmm)
-	fmt.Println(fmm)
-	fmt.Println(*bl)
-	for _, f := range files {
-		fmt.Println(f.Name())
-		// if strings.Contains(f.Name(), "index.txt") {
-		// 	fmt.Println("index.txt found...")
-		// 	hasIndex = true
-		// }
+	// fmt.Println(fmm)
+	
+	// fmt.Println(*bl)
+
+	for key, _ := range fileMetaMap {
+		_, err := os.Stat(path + "/" + key)
+		// files not in dir, sync files
+		if os.IsNotExist(err) {
+			fmt.Println("File does not exist.")
+			fi, err := os.Create(path + "/" + key)
+			if err != nil {
+				fmt.Println("Error when creating index.txt ...", err)
+			}
+			fmt.Println("Creating file...", key)
+			block := Block{
+				BlockData: make([]byte, client.BlockSize),
+				BlockSize: client.BlockSize,
+			}
+			fileMetaData := fileMetaMap[key]
+			blockHashList := fileMetaData.BlockHashList
+
+			for _, hs := range blockHashList {
+				fmt.Println("hs...", hs)
+				client.GetBlock(hs, &block)
+				fmt.Println("BlockData...", string(block.BlockData))
+				fi.WriteString(string(block.BlockData))
+			}
+			
+			// _, err = fi.Read(block.BlockData)
+			// if err != nil {
+			// 	fmt.Println("Error when reading...", err)
+			// 	break
+			// }
+			
+			fi.Close()
+			
+		}
 	}
+
+	client.GetFileInfoMap(bl, &fileMetaMap)
+	fmt.Println(fileMetaMap)
+	// for _, f := range files {
+	// 	fmt.Println(f.Name())
+	// 	if _, ok := fileMetaMap[f.Name()]; ok {
+	// 		fmt.Println("File found in base...")
+	// 	} else {
+	// 		_, err := os.Create(path + "/" + f.Name())
+	// 		if err != nil {
+	// 			fmt.Println("Error when creating index.txt ...", err)
+	// 		}
+	// 		fi, err := os.Open(path + "/" + f.Name())
+	// 		if err != nil {
+	// 			fmt.Println("No such file...")
+	// 		}
+	// 		fmt.Println("Creating file...", f.Name())
+	// 		block := Block{
+	// 			BlockData: make([]byte, client.BlockSize),
+	// 			BlockSize: client.BlockSize,
+	// 		}
+	// 		client.GetBlock("ss", &block)
+	// 		_, err = fi.Read(block.BlockData)
+	// 		if err != nil {
+	// 			fmt.Println("Error when reading...", err)
+	// 			break
+	// 		}
+	// 		fi.Write(block.BlockData)
+
+	// 		fmt.Println(string(block.BlockData))
+	// 	}
+	// }
 
 	// if files.Contains
 
