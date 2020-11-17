@@ -225,19 +225,27 @@ func ClientSync(client RPCClient) {
 			fmt.Println("File in base...", k)
 		} else {
 			fmt.Println("File not in base...", k)
-			file_overwrite, err := os.OpenFile(path + k, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+			l_index := k + "," + "1" + "," + strings.Trim(fmt.Sprint(v.BlockHashList), "[]") + "\n"
+			fmt.Println("Add to local index...", l_index)
+			fileMetaMap_index[k] = l_index
+			// file_overwrite, err := os.OpenFile(path + k, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+			file_overwrite, err := os.Create(path + "/" + k)
+			defer file_overwrite.Close()
 			if err != nil {
 				fmt.Println("Error when open and overwriting file...", err)
+			} else {
+				fmt.Println("Creating file...", file_overwrite.Name())
 			}
 			line := v.BlockHashList // []string of hash values
 			fmt.Println("v block hash list...", v.BlockHashList)
 			var block = new(Block)
-			w := bufio.NewWriter(file_overwrite)
+			// w := bufio.NewWriter(file_overwrite)
 			for _, hs := range line {
 				client.GetBlock(hs, block)
 				fmt.Println("block.BlockData)...", block.BlockData)
 				// _, err := file_overwrite.Write(block.BlockData)
-				_, err := w.Write(block.BlockData)
+				// _, err := w.Write(block.BlockData)
+				_, err := file_overwrite.Write(block.BlockData)
 				if err != nil {
 					fmt.Println("Error when overwriting file...", err)
 				}
