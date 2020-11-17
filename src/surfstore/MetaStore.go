@@ -37,10 +37,10 @@ func (m *MetaStore) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) (
 		*latestVersion += 1
 		return nil
 	} else { // file not exist
-		fmt.Println("Adding new files...")
+		fmt.Println("Adding new files...", *latestVersion)
 		m.FileMetaMap[fileMetaData.Filename] = *fileMetaData
 		*latestVersion = 1
-		fmt.Println("After adding...")
+		fmt.Println("After adding...", *latestVersion)
 	}
 
 	return nil
