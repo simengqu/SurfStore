@@ -30,7 +30,7 @@ func (m *MetaStore) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) (
 			return errors.New("The version is incorrect.")
 		}
 
-		fmt.Println("Updating fiels...")
+		fmt.Println("Updating files...")
 		fileMetaData.Version += 1
 		m.FileMetaMap[fileMetaData.Filename] = *fileMetaData
 
