@@ -15,11 +15,11 @@ type Server struct {
 
 func (s *Server) GetFileInfoMap(succ *bool, serverFileInfoMap *map[string]FileMetaData) error {
 	// panic("todo")
-	fmt.Println("before server.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
-	fmt.Println("before server.GetFileInfoMap>>>>>>>>>", *succ)
+	// fmt.Println("before server.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
+	// fmt.Println("before server.GetFileInfoMap>>>>>>>>>", *succ)
 	*succ = false
 	s.MetaStore.GetFileInfoMap(succ, serverFileInfoMap)
-	fmt.Println("after server.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
+	// fmt.Println("after server.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
 	return nil
 }
 
