@@ -18,14 +18,10 @@ import (
 Implement the logic for a client syncing with the server here.
 */
 func ClientSync(client RPCClient) {
-	// panic("todo")
-	// log.Println("In client sync")
-
 	bl := new(bool) // bool to pass in rpc calls
-
 	var tempmap = map[string]FileMetaData{}
 	client.GetFileInfoMap(bl, &tempmap)
-	PrintMetaMap(tempmap)
+	// PrintMetaMap(tempmap)
 
 	// read files in base
 	path := client.BaseDir
@@ -42,15 +38,11 @@ func ClientSync(client RPCClient) {
 		if err != nil {
 			// fmt.Println("Error when creating index.txt ...", err)
 		}
-		// local_index.WriteString("test string")
-		for _, v := range tempmap {
-			l := v.Filename + "," + strconv.Itoa(v.Version) + "," + strings.Trim(fmt.Sprint(v.BlockHashList), "[]") + "\n"
-			local_index.WriteString(l)
-		}
 	}
 
 	// store local index in map
 	var fileMetaMap_index = map[string]string{}
+	var fileMetaMap_index_old = map[string]string{}
 	f_index, err := os.Open(path + "/" + "index.txt")
 	defer f_index.Close()
 	if err != nil {
@@ -63,31 +55,14 @@ func ClientSync(client RPCClient) {
 			// fmt.Print("Error when reading index...", err)
 			break
 		}
-		// read_index = true
 		index_line := strings.Split(line, ",")
 		fileMetaMap_index[index_line[0]] = strings.Trim(fmt.Sprint(line), "[]")
-	
+		fileMetaMap_index_old[index_line[0]] = strings.Trim(fmt.Sprint(line), "[]")
 	}
-
-	// fmt.Println("Index.txt ...", fileMetaMap_index)
-
-	
-
-	
-	// fmm := new(map[string]FileMetaData)	
 
 	// create a map of FileMetaData(Filename, Version, BlockHashList[]), and obtain file info from the server
 	var fileMetaMap = map[string]FileMetaData{}
-	// client.GetFileInfoMap(bl, &fileMetaMap)
-	// fmt.Println(metaStore.FileMetaMap)
-	// client.GetFileInfoMap(bl, &metaStore.FileMetaMap)
-	// fmt.Println(metaStore.FileMetaMap)
-
-	// k = file name, v = FileMetaData
-	// var fileMetaMap_base = map[string]FileMetaData{}
-	// k = file name, v = string[file name, version, h1 h2 h3...]
 	
-
 	// scan the base dir for each file
 	var file_name_base = map[string]int{}
 	empty_base := true
@@ -126,15 +101,9 @@ func ClientSync(client RPCClient) {
 				blockHashList = append(blockHashList, he)
 				block.BlockData = bl_byte_base[:s_base]
 				blockList_base = append(blockList_base, block)
-				// fmt.Println("blockHashList:", he)
-				// fmt.Println("BlockData:", string(block.BlockData[:s_base]))
-				// fmt.Println("blockList_base:", blockList_base)
-				// client.PutBlock(block, bl)
-				// fmt.Println(string(block.BlockData))
+				// fmt.Println("Block hash...", he)
 			}
 
-			// fmt.Println("Hash list...", blockHashList)
-			// fmt.Println("blockList_base...", blockList_base)
 			// compare to local index
 			f_index, err := os.Open(path + "/" + "index.txt")
 			defer f_index.Close()
@@ -152,9 +121,7 @@ func ClientSync(client RPCClient) {
 					// fmt.Print("Error when reading index...", err)
 					break
 				}
-
 				index_line := strings.Split(line, ",")
-				// fileMetaMap_index[index_line[0]] = strings.Trim(fmt.Sprint(line), "[]")
 				// fmt.Println("file name in local index...", index_line[0], index_line)
 				if f.Name() == index_line[0] {
 					new_file = false
@@ -170,8 +137,8 @@ func ClientSync(client RPCClient) {
 				}
 			}
 
-			client.GetFileInfoMap(bl, &fileMetaMap) // download an updated FileInfoMap
-			PrintMetaMap(fileMetaMap)
+			client.GetFileInfoMap(bl, &fileMetaMap) // download an updated fileInfoMap
+			// PrintMetaMap(fileMetaMap)
 			if new_file {
 				// fmt.Println("New file found in local index...", f.Name())
 			}
@@ -197,13 +164,11 @@ func ClientSync(client RPCClient) {
 					client.UpdateFile(&fileMetaData_base, version_local_update) // store in server
 					fileMetaData_base.Version = *version_local_update
 					client.GetFileInfoMap(bl, &fileMetaMap)
-					PrintMetaMap(fileMetaMap)
+					// PrintMetaMap(fileMetaMap)
 					l_base := f.Name() + "," + strconv.Itoa(fileMetaData_base.Version) + "," + strings.Trim(fmt.Sprint(blockHashList), "[]") + "\n"
 					
 					fileMetaMap_index[f.Name()] = l_base
 					// fmt.Println("Writing to index...", l_base)
-					// update the map on server
-					// update the entry in local index
 				}
 			}
 
@@ -212,24 +177,8 @@ func ClientSync(client RPCClient) {
 			// if new file in local base dir that aren't in local index or remote index
 			if _, ok := fileMetaMap[f.Name()]; ok { // in remote index
 				// fmt.Println("File found in remote index...")
-				// if !file_changed { // in remote index, and no uncommited local changes
-				// 	for k, v := range fileMetaMap { // update files in base
-
-				// 	}
-				// }
-				// if file_changed {
-					
-				// 	version_update := new(int)
-				// 	*version_update = fileMetaMap[f.Name()].Version
-				// 	fmt.Println("Updating file in base...", *version_update)
-				// 	client.UpdateFile(&fileMetaData_base, version_update)
-				// 	fmt.Println("After updating file in base...", *version_update)
-				// }
 			} else { // file not in remote index
-				// fmt.Println("File not found in remote index...")
-				
 				// check if file in base is in local index, if in local index, check if file is changed
-				// fmt.Println("File not found in local index...")
 				// store blocks
 				for _, bl_base := range blockList_base {
 					// fmt.Println("bl_base...", bl_base)
@@ -244,63 +193,53 @@ func ClientSync(client RPCClient) {
 				l_base := f.Name() + "," + strconv.Itoa(fileMetaData_base.Version) + "," + strings.Trim(fmt.Sprint(blockHashList), "[]") + "\n"
 					
 				fileMetaMap_index[f.Name()] = l_base
-				// fmt.Println("Writing to index...", l_base)
-				// if new_file { // new file that is not in remote index or local index
-				// 	fmt.Println("File not found in local index...")
-				// 	// store blocks
-				// 	for _, bl_base := range blockList_base {
-				// 		fmt.Println("bl_base...", bl_base)
-				// 		client.PutBlock(bl_base, bl)
-				// 	}
-					
-				// 	client.UpdateFile(&fileMetaData_base, &fileMetaData_base.Version) // store in server
-				// 	client.GetFileInfoMap(bl, &fileMetaMap)
-				// 	l_base := f.Name() + "," + "1" + "," + strings.Trim(fmt.Sprint(blockHashList), "[]") + "\n"
-					
-				// 	fileMetaMap_index[f.Name()] = l_base
-				// 	fmt.Println("Writing to index...", l_base)
-				// } else { // file in local index but not in remote index
-				// 	fmt.Println("File in local index but not in remote index...")
-				// 	if file_changed { // file in base is diff from file in index
-				// 		fmt.Println("File in local index is changed...")
-						
-				// 		l_local := f.Name() + "," + "1" + "," + strings.Trim(fmt.Sprint(blockHashList), "[]") + "\n"
-				// 		fileMetaMap_index[f.Name()] = l_local
-				// 		fmt.Println("Change", f.Name(), "to", l_local)
-				// 	}
-				// }
+			}
+
+			// file is deleted if its hashlist is tombstone in the map returned by GetFileInfoMap
+			if v, ok := fileMetaMap[f.Name()]; ok {
+				if strings.Trim(fmt.Sprint(v.BlockHashList), "[]") == "0" {
+					fileMetaMap_index[f.Name()] = f.Name() + "," + strconv.Itoa(v.Version) + "," + "0" + "\n"
+				}
 			}
 			
+		}
+	}
+
+	// read local index see if  file is there in a client's index.txt but not in its base dir.
+	for _, f := range files {
+		file_name_base[f.Name()] = 0
+	}
+	// fmt.Println(fileMetaMap_index_old)
+	for k, v := range fileMetaMap_index_old {
+		// file is there in a client's index.txt but not in its base dir.
+		if _, ok := file_name_base[k]; !ok {
+			// fmt.Println("File is there in a client's index.txt but not in its base dir...", k)
+
+			index_line := strings.Split(v, ",")
+			tombVersion, _ := strconv.Atoi(index_line[1])
+			metaData := FileMetaData {
+				Filename: k,
+				Version: 0,
+				BlockHashList: []string{"0"},
+			}
+			metaData.Version = tombVersion
+			if index_line[2] != "0\n" {
+				client.UpdateFile(&metaData, &metaData.Version)
+				tombVersion += 1
+			}
+			l_base := k + "," + strconv.Itoa(tombVersion) + "," + "0" + "\n"
+			fileMetaMap_index[k] = l_base
+			// fmt.Print("Deleted file...", fileMetaMap_index[k])
 			
-
-
-			// fmt.Println("fileMetaData.BlockHashList...", fileMetaData.BlockHashList)
-			// client.UpdateFile(&fileMetaData, &fileMetaData.Version) // update or adding new files
-
-			// fi.Write(block.BlockData)
-			// blockStore.PutBlock(block, bl)
-			// hashList := metaStore.FileMetaMap[f.Name()].BlockHashList
-			// hashList := fileMetaData.BlockHashList
-			// l := f.Name() + "," + "1" + "," + strings.Trim(fmt.Sprint(hashList), "[]")
-			// indexF.WriteString(l+"\n")
-			// fmt.Println(l)
-			// metaStore.FileMetaMap = *new(map[string]FileMetaData)
-			// metaStore.FileMetaMap[f.Name()] = fileMetaData
-
-							
-			// fileMetaMap[f.Name()] = fileMetaData
-			// fmt.Println("fileMetaData.Version after calling...", fileMetaData.Version)
 		}
 	}
 
 	if empty_base {
 		// fmt.Println("Base is empty...")
 	}
-	// fmt.Println("Files in base...", file_name_base)
 	// a file in remote index but not in local or base dir
 	client.GetFileInfoMap(bl, &fileMetaMap)
-	// fmt.Println("fileMetaMap in server...")
-	PrintMetaMap(fileMetaMap)
+	// PrintMetaMap(fileMetaMap)
 	
 	for k, v := range fileMetaMap {
 		if _, ok := file_name_base[k]; ok {
@@ -325,39 +264,49 @@ func ClientSync(client RPCClient) {
 						// fmt.Println("Error when downloading file...", err)
 					}
 				}
-				// tmpl := strings.Split(fileMetaMap_index[k], ",")
 				fileMetaMap_index[k] = k + "," + strconv.Itoa(v.Version) + "," + hs_remote + "\n"
 			}
 			
 		} else {
 			// fmt.Println("File not in base...", k)
-			l_index := k + "," + strconv.Itoa(v.Version) + "," + strings.Trim(fmt.Sprint(v.BlockHashList), "[]") + "\n"
-			// fmt.Println("Add to local index...", l_index)
-			fileMetaMap_index[k] = l_index
-			// file_overwrite, err := os.OpenFile(path + k, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-			file_overwrite, err := os.Create(path + "/" + k)
-			defer file_overwrite.Close()
-			if err != nil {
-				// fmt.Println("Error when open and overwriting file...", err)
-			} else {
-				// fmt.Println("Creating file...", file_overwrite.Name())
-			}
-			line := v.BlockHashList // []string of hash values
-			// fmt.Println("v block hash list...", v.BlockHashList)
-			var block = new(Block)
-			// w := bufio.NewWriter(file_overwrite)
-			for _, hs := range line {
-				client.GetBlock(hs, block)
-				// fmt.Println("block.BlockData...", block.BlockData)
-				// _, err := file_overwrite.Write(block.BlockData)
-				// _, err := w.Write(block.BlockData)
-				_, err := file_overwrite.Write(block.BlockData)
+			metaData := fileMetaMap[k]
+			hs := strings.Trim(fmt.Sprint(metaData.BlockHashList), "[]")
+			if hs != "0" { // file not deleted
+				l_index := k + "," + strconv.Itoa(v.Version) + "," + strings.Trim(fmt.Sprint(v.BlockHashList), "[]") + "\n"
+				// fmt.Println("Add to local index...", l_index)
+				fileMetaMap_index[k] = l_index
+				file_overwrite, err := os.Create(path + "/" + k)
+				defer file_overwrite.Close()
 				if err != nil {
-					// fmt.Println("Error when overwriting file...", err)
+					// fmt.Println("Error when open and overwriting file...", err)
+				} else {
+					// fmt.Println("Creating file...", file_overwrite.Name())
 				}
+				line := v.BlockHashList // []string of hash values
+				// fmt.Println("v block hash list...", v.BlockHashList)
+				var block = new(Block)
+				// w := bufio.NewWriter(file_overwrite)
+				for _, hs := range line {
+					client.GetBlock(hs, block)
+					// fmt.Println("block.BlockData...", block.BlockData)
+					_, err := file_overwrite.Write(block.BlockData)
+					if err != nil {
+						// fmt.Println("Error when overwriting file...", err)
+					}
+				}
+			} else {
+				
 			}
-			// hl := line[2]
 		}
+		metaData := fileMetaMap[k]
+		hs := strings.Trim(fmt.Sprint(metaData.BlockHashList), "[]")
+		if hs == "0" {
+			err := os.Remove(path + "/" + k)
+			if err != nil {
+				// fmt.Println("Fail to delete file...", err)
+			}
+		}
+		
 	}
 
 

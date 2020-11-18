@@ -30,7 +30,6 @@ func (surfClient *RPCClient) GetBlock(blockHash string, block *Block) error {
 }
 
 func (surfClient *RPCClient) PutBlock(block Block, succ *bool) error {
-	// panic("todo")
 	// connect to the server
 	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
 	if e != nil {
@@ -46,13 +45,9 @@ func (surfClient *RPCClient) PutBlock(block Block, succ *bool) error {
 
 	// close the connection
 	return conn.Close()
-
-	// bs := new(BlockStore)
-	// bs.PutBlock(block, succ)
 }
 
 func (surfClient *RPCClient) HasBlocks(blockHashesIn []string, blockHashesOut *[]string) error {
-	// panic("todo")
 	// connect to the server
 	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
 	if e != nil {
@@ -71,9 +66,7 @@ func (surfClient *RPCClient) HasBlocks(blockHashesIn []string, blockHashesOut *[
 }
 
 func (surfClient *RPCClient) GetFileInfoMap(succ *bool, serverFileInfoMap *map[string]FileMetaData) error {
-	// panic("todo")
 	// connect to the server
-	// fmt.Println("In client.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
 	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
 	if e != nil {
 		return e
@@ -85,15 +78,12 @@ func (surfClient *RPCClient) GetFileInfoMap(succ *bool, serverFileInfoMap *map[s
 		conn.Close()
 		return e
 	}
-	// fmt.Println("after client.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
 	// close the connection
 	return conn.Close()
 }
 
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) error {
-	// panic("todo")
 	// connect to the server
-	// fmt.Println("in client.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
 	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
 	if e != nil {
 		return e
