@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
-	"fmt"
+	// "fmt"
 )
 
 type Server struct {
@@ -25,7 +25,7 @@ func (s *Server) GetFileInfoMap(succ *bool, serverFileInfoMap *map[string]FileMe
 
 func (s *Server) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) error {
 	// panic("todo")
-	fmt.Println("in server.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
+	// fmt.Println("in server.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
 	s.MetaStore.UpdateFile(fileMetaData, latestVersion)
 	return nil
 }

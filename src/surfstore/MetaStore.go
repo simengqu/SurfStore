@@ -22,15 +22,21 @@ func (m *MetaStore) GetFileInfoMap(_ignore *bool, serverFileInfoMap *map[string]
 
 func (m *MetaStore) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) (err error) {
 	// panic("todo")
-	fmt.Println("in metaStore.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
+	
 	// file exist
 	if _, ok := m.FileMetaMap[fileMetaData.Filename]; ok {
 
 		fmt.Println("Updating files...")
-		fileMetaData.Version += 1
+		fmt.Println("in metaStore.UpdateFile fileMetaData.Version>>>>>>>>>", fileMetaData.Version)
+		fmt.Println("in metaStore.UpdateFile m.FileMetaMap[fileMetaData.Filename]>>>>>>>>>", m.FileMetaMap[fileMetaData.Filename].Version)
+		// fileMetaData.Version += 1
+		fileMetaData.Version = m.FileMetaMap[fileMetaData.Filename].Version + 1
 		m.FileMetaMap[fileMetaData.Filename] = *fileMetaData
 
 		*latestVersion = fileMetaData.Version
+		fmt.Println("after metaStore.UpdateFile fileMetaData.Version>>>>>>>>>", fileMetaData.Version)
+		fmt.Println("after metaStore.UpdateFile m.FileMetaMap[fileMetaData.Filename]>>>>>>>>>", m.FileMetaMap[fileMetaData.Filename].Version)
+		fmt.Println("after metaStore.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
 		return nil
 	} else { // file not exist
 		fmt.Println("Adding new files...", *latestVersion)

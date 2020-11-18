@@ -40,7 +40,7 @@ func ClientSync(client RPCClient) {
 		local_index, err := os.Create(path + "/index.txt")
 		defer local_index.Close()
 		if err != nil {
-			fmt.Println("Error when creating index.txt ...", err)
+			// fmt.Println("Error when creating index.txt ...", err)
 		}
 		// local_index.WriteString("test string")
 		for _, v := range tempmap {
@@ -54,7 +54,7 @@ func ClientSync(client RPCClient) {
 	f_index, err := os.Open(path + "/" + "index.txt")
 	defer f_index.Close()
 	if err != nil {
-		fmt.Println("Index.txt doesn't exist...")
+		// fmt.Println("Index.txt doesn't exist...")
 	}
 	rd := bufio.NewReader(f_index)
 	for {
@@ -92,7 +92,7 @@ func ClientSync(client RPCClient) {
 	var file_name_base = map[string]int{}
 	empty_base := true
 	for _, f := range files {
-		fmt.Println("FileNames...", f.Name())
+		// fmt.Println("FileNames...", f.Name())
 		
 		if f.Name() != "index.txt" && f.Name() != ".DS_Store" { // ignore .DS_Store on mac
 			empty_base = false
@@ -171,7 +171,7 @@ func ClientSync(client RPCClient) {
 			}
 
 			client.GetFileInfoMap(bl, &fileMetaMap) // download an updated FileInfoMap
-
+			PrintMetaMap(fileMetaMap)
 			if new_file {
 				fmt.Println("New file found in local index...", f.Name())
 			}
@@ -195,8 +195,10 @@ func ClientSync(client RPCClient) {
 					version_local_update := new(int)
 					*version_local_update = version_local + 1
 					client.UpdateFile(&fileMetaData_base, version_local_update) // store in server
+					fileMetaData_base.Version = *version_local_update
 					client.GetFileInfoMap(bl, &fileMetaMap)
-					l_base := f.Name() + "," + strconv.Itoa(version_local) + "," + strings.Trim(fmt.Sprint(blockHashList), "[]") + "\n"
+					PrintMetaMap(fileMetaMap)
+					l_base := f.Name() + "," + strconv.Itoa(fileMetaData_base.Version) + "," + strings.Trim(fmt.Sprint(blockHashList), "[]") + "\n"
 					
 					fileMetaMap_index[f.Name()] = l_base
 					fmt.Println("Writing to index...", l_base)
@@ -236,8 +238,9 @@ func ClientSync(client RPCClient) {
 				version_update := new(int)
 				*version_update = fileMetaData_base.Version
 				client.UpdateFile(&fileMetaData_base, version_update) // store in server
+				fileMetaData_base.Version = *version_update
 				client.GetFileInfoMap(bl, &fileMetaMap)
-				l_base := f.Name() + "," + "1" + "," + strings.Trim(fmt.Sprint(blockHashList), "[]") + "\n"
+				l_base := f.Name() + "," + strconv.Itoa(fileMetaData_base.Version) + "," + strings.Trim(fmt.Sprint(blockHashList), "[]") + "\n"
 					
 				fileMetaMap_index[f.Name()] = l_base
 				fmt.Println("Writing to index...", l_base)
@@ -321,11 +324,13 @@ func ClientSync(client RPCClient) {
 						fmt.Println("Error when downloading file...", err)
 					}
 				}
+				// tmpl := strings.Split(fileMetaMap_index[k], ",")
+				fileMetaMap_index[k] = k + "," + strconv.Itoa(v.Version) + "," + hs_remote + "\n"
 			}
-			fileMetaMap_index[k] = k + "," + "1" + "," + hs_remote + "\n"
+			
 		} else {
 			fmt.Println("File not in base...", k)
-			l_index := k + "," + "1" + "," + strings.Trim(fmt.Sprint(v.BlockHashList), "[]") + "\n"
+			l_index := k + "," + strconv.Itoa(v.Version) + "," + strings.Trim(fmt.Sprint(v.BlockHashList), "[]") + "\n"
 			fmt.Println("Add to local index...", l_index)
 			fileMetaMap_index[k] = l_index
 			// file_overwrite, err := os.OpenFile(path + k, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
@@ -371,104 +376,6 @@ func ClientSync(client RPCClient) {
 	}
 
 }
-	// var mp map[string]FileMetaData
-	// mp = metaStore.FileMetaMap
-	// fmt.Println(metaStore.FileMetaMap)
-	// client.GetFileInfoMap(bl, &metaStore.FileMetaMap)
-	// fmt.Println(metaStore.FileMetaMap)
-	// fmt.Println(fmm)
-	
-	// fmt.Println(*bl)
-
-	// for key, _ := range fileMetaMap {
-	// 	_, err := os.Stat(path + "/" + key)
-	// 	// files not in dir, sync files
-	// 	if os.IsNotExist(err) {
-	// 		fmt.Println("File does not exist.")
-	// 		fi, err := os.Create(path + "/" + key)
-	// 		if err != nil {
-	// 			fmt.Println("Error when creating index.txt ...", err)
-	// 		}
-	// 		fmt.Println("Creating file...", key)
-	// 		block := Block{
-	// 			BlockData: make([]byte, client.BlockSize),
-	// 			BlockSize: client.BlockSize,
-	// 		}
-	// 		fileMetaData := fileMetaMap[key]
-	// 		blockHashList := fileMetaData.BlockHashList
-
-	// 		for _, hs := range blockHashList {
-	// 			fmt.Println("hs...", hs)
-	// 			client.GetBlock(hs, &block)
-	// 			fmt.Println("BlockData...", string(block.BlockData))
-	// 			fi.WriteString(string(block.BlockData))
-	// 		}
-			
-	// 		// _, err = fi.Read(block.BlockData)
-	// 		// if err != nil {
-	// 		// 	fmt.Println("Error when reading...", err)
-	// 		// 	break
-	// 		// }
-			
-	// 		fi.Close()
-			
-	// 	}
-	// }
-
-	// client.GetFileInfoMap(bl, &fileMetaMap)
-	// fmt.Println(fileMetaMap)
-	// for _, f := range files {
-	// 	fmt.Println(f.Name())
-	// 	if _, ok := fileMetaMap[f.Name()]; ok {
-	// 		fmt.Println("File found in base...")
-	// 	} else {
-	// 		_, err := os.Create(path + "/" + f.Name())
-	// 		if err != nil {
-	// 			fmt.Println("Error when creating index.txt ...", err)
-	// 		}
-	// 		fi, err := os.Open(path + "/" + f.Name())
-	// 		if err != nil {
-	// 			fmt.Println("No such file...")
-	// 		}
-	// 		fmt.Println("Creating file...", f.Name())
-	// 		block := Block{
-	// 			BlockData: make([]byte, client.BlockSize),
-	// 			BlockSize: client.BlockSize,
-	// 		}
-	// 		client.GetBlock("ss", &block)
-	// 		_, err = fi.Read(block.BlockData)
-	// 		if err != nil {
-	// 			fmt.Println("Error when reading...", err)
-	// 			break
-	// 		}
-	// 		fi.Write(block.BlockData)
-
-	// 		fmt.Println(string(block.BlockData))
-	// 	}
-	// }
-
-	// if files.Contains
-
-	// index.txt
-	// File1.dat,3,h0 h1 h2 h3
-
-	// // read file
-	// path := client.ServerAddr + client.BaseDir
-	// fmt.Println("File path: ", path)
-	// f, err := os.Open(path)
-	// defer f.Close()
-	// if err != nil {
-	// 	fmt.Println("File not exist.")
-	// }
-	// buf := bufio.NewReader(f)
-	// block := make([]byte, client.BlockSize)
-	// // size, err := f.Read(block)
-	// size, err := buf.Read(block)
-	// if err != nil {
-	// 	fmt.Println("Error when reading files.")
-	// }
-	// fmt.Println("Reading in", size, "bytes...")
-
 
 /*
 Helper function to print the contents of the metadata map.
