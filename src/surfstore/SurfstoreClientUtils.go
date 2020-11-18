@@ -23,6 +23,10 @@ func ClientSync(client RPCClient) {
 
 	bl := new(bool) // bool to pass in rpc calls
 
+	var tempmap = map[string]FileMetaData{}
+	client.GetFileInfoMap(bl, &tempmap)
+	PrintMetaMap(tempmap)
+
 	// read files in base
 	path := client.BaseDir
 	files, err := ioutil.ReadDir(path)
@@ -39,6 +43,10 @@ func ClientSync(client RPCClient) {
 			fmt.Println("Error when creating index.txt ...", err)
 		}
 		// local_index.WriteString("test string")
+		for _, v := range tempmap {
+			l := v.Filename + "," + strconv.Itoa(v.Version) + "," + strings.Trim(fmt.Sprint(v.BlockHashList), "[]") + "\n"
+			local_index.WriteString(l)
+		}
 	}
 
 	// store local index in map
@@ -63,9 +71,7 @@ func ClientSync(client RPCClient) {
 
 	fmt.Println("Index.txt ...", fileMetaMap_index)
 
-	var tempmap = map[string]FileMetaData{}
-	client.GetFileInfoMap(bl, &tempmap)
-	PrintMetaMap(tempmap)
+	
 
 	
 	// fmm := new(map[string]FileMetaData)	
@@ -85,10 +91,12 @@ func ClientSync(client RPCClient) {
 	// scan the base dir for each file
 	var file_name_base = map[string]int{}
 	// read_index := false
+	empty_base := true
 	for _, f := range files {
 		fmt.Println("FileNames...", f.Name())
 		
 		if f.Name() != "index.txt" && f.Name() != ".DS_Store" { // ignore .DS_Store on mac
+			empty_base = false
 			file_name_base[f.Name()] = 0
 			// open file
 			fi, err := os.Open(path + "/" + f.Name())
@@ -288,9 +296,15 @@ func ClientSync(client RPCClient) {
 		}
 	}
 
+	if empty_base {
+		fmt.Println("Base is empty...")
+	}
 	fmt.Println("Files in base...", file_name_base)
 	// a file in remote index but not in local or base dir
-	fmt.Println("fileMetaMap in server...", fileMetaMap)
+	client.GetFileInfoMap(bl, &fileMetaMap)
+	fmt.Println("fileMetaMap in server...")
+	PrintMetaMap(fileMetaMap)
+	
 	for k, v := range fileMetaMap {
 		if _, ok := file_name_base[k]; ok {
 			fmt.Println("File in base...", k)
