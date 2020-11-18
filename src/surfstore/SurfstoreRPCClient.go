@@ -1,7 +1,7 @@
 package surfstore
 
 import (
-	"fmt"
+	// "fmt"
 	"net/rpc"
 )
 
@@ -73,7 +73,7 @@ func (surfClient *RPCClient) HasBlocks(blockHashesIn []string, blockHashesOut *[
 func (surfClient *RPCClient) GetFileInfoMap(succ *bool, serverFileInfoMap *map[string]FileMetaData) error {
 	// panic("todo")
 	// connect to the server
-	fmt.Println("In client.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
+	// fmt.Println("In client.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
 	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
 	if e != nil {
 		return e
@@ -85,7 +85,7 @@ func (surfClient *RPCClient) GetFileInfoMap(succ *bool, serverFileInfoMap *map[s
 		conn.Close()
 		return e
 	}
-	fmt.Println("after client.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
+	// fmt.Println("after client.GetFileInfoMap>>>>>>>>>", *serverFileInfoMap)
 	// close the connection
 	return conn.Close()
 }
@@ -93,7 +93,7 @@ func (surfClient *RPCClient) GetFileInfoMap(succ *bool, serverFileInfoMap *map[s
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) error {
 	// panic("todo")
 	// connect to the server
-	fmt.Println("in client.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
+	// fmt.Println("in client.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
 	conn, e := rpc.DialHTTP("tcp", surfClient.ServerAddr)
 	if e != nil {
 		return e

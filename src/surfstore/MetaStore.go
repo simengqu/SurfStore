@@ -1,7 +1,7 @@
 package surfstore
 
 // import "errors"
-import "fmt"
+// import "fmt"
 
 type MetaStore struct {
 	FileMetaMap map[string]FileMetaData
@@ -26,23 +26,23 @@ func (m *MetaStore) UpdateFile(fileMetaData *FileMetaData, latestVersion *int) (
 	// file exist
 	if _, ok := m.FileMetaMap[fileMetaData.Filename]; ok {
 
-		fmt.Println("Updating files...")
-		fmt.Println("in metaStore.UpdateFile fileMetaData.Version>>>>>>>>>", fileMetaData.Version)
-		fmt.Println("in metaStore.UpdateFile m.FileMetaMap[fileMetaData.Filename]>>>>>>>>>", m.FileMetaMap[fileMetaData.Filename].Version)
+		// fmt.Println("Updating files...")
+		// fmt.Println("in metaStore.UpdateFile fileMetaData.Version>>>>>>>>>", fileMetaData.Version)
+		// fmt.Println("in metaStore.UpdateFile m.FileMetaMap[fileMetaData.Filename]>>>>>>>>>", m.FileMetaMap[fileMetaData.Filename].Version)
 		// fileMetaData.Version += 1
 		fileMetaData.Version = m.FileMetaMap[fileMetaData.Filename].Version + 1
 		m.FileMetaMap[fileMetaData.Filename] = *fileMetaData
 
 		*latestVersion = fileMetaData.Version
-		fmt.Println("after metaStore.UpdateFile fileMetaData.Version>>>>>>>>>", fileMetaData.Version)
-		fmt.Println("after metaStore.UpdateFile m.FileMetaMap[fileMetaData.Filename]>>>>>>>>>", m.FileMetaMap[fileMetaData.Filename].Version)
-		fmt.Println("after metaStore.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
+		// fmt.Println("after metaStore.UpdateFile fileMetaData.Version>>>>>>>>>", fileMetaData.Version)
+		// fmt.Println("after metaStore.UpdateFile m.FileMetaMap[fileMetaData.Filename]>>>>>>>>>", m.FileMetaMap[fileMetaData.Filename].Version)
+		// fmt.Println("after metaStore.UpdateFile latestVersion>>>>>>>>>", *latestVersion)
 		return nil
 	} else { // file not exist
-		fmt.Println("Adding new files...", *latestVersion)
+		// fmt.Println("Adding new files...", *latestVersion)
 		m.FileMetaMap[fileMetaData.Filename] = *fileMetaData
 		*latestVersion = 1
-		fmt.Println("After adding...", *latestVersion)
+		// fmt.Println("After adding...", *latestVersion)
 	}
 	// file exist
 	// if _, ok := m.FileMetaMap[fileMetaData.Filename]; ok {
