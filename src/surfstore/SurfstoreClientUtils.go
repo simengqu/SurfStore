@@ -245,8 +245,12 @@ func ClientSync(client RPCClient) {
 		if _, ok := file_name_base[k]; ok {
 			// fmt.Println("File in base...", k)
 			hs_remote := strings.Trim(fmt.Sprint(v.BlockHashList), "[]")
-			if hs_remote != fileMetaMap_index[k] {
+			hs_index := strings.Split(fileMetaMap_index[k], ",")[2]
+			// fmt.Println("hs_remote", hs_remote)
+			// fmt.Println("hs_index", hs_index)
+			if hs_remote + "\n" != hs_index {
 				// download from server to base
+				// fmt.Println("download from server to base")
 				file_overwrite, err := os.Create(path + "/" + k)
 				defer file_overwrite.Close()
 				if err != nil {
